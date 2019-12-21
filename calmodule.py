@@ -9,12 +9,12 @@ class calModule():
     def __init__(self):
         self.updateTermData = []
         self.isUpdate = False
-        self.__page = 33   #生成多少页数据
+        self.__page = 35   #生成多少页数据
         self.__scope = 100  #生成多少期数据
         self.__zone = 32
         self.__intervalThreshold = 10 #查找间隔阈值
         self.__funcStart = 1 #计算函数开始索引
-        self.__funcEnd = 216 #计算函数结束索引
+        self.__funcEnd = 435 #计算函数结束索引
         self.termForcast = ""
         self.__flag55 = True
         self.__flag50 = True
@@ -62,7 +62,7 @@ class calModule():
         self.__funcEnd = val
 
     #初始化数据库，包括生成开奖信息表，概率计算表和初始化概算数据间隔表
-    def initData(self,page=33,scope=100):
+    def initData(self,page=35,scope=100):
         self.__page = page
         self.__scope = scope
         #重新生成表的话，就把原来的表全部清空，重头再来一次
@@ -86,7 +86,7 @@ class calModule():
         end = time.time()
         print("生成概率周期数据完毕，用时：",end-start)
 
-    def initDataWithZone(self,page=33,scope=100,zone=5):
+    def initDataWithZone(self,page=35,scope=100,zone=2):
         self.__page = page
         self.__scope = scope
         self.__zone = zone
@@ -211,11 +211,11 @@ class calModule():
         condition = {'groupID':groupID,'moduleID':moduleID,'numSize':numSize}
         datas = self.getIntervalData(condition)
         for data in datas:
-            if data['last%d5'%numSize] !=-1 and data['last%d5'%numSize] < smallestScope:
-                smallestScope = data['last%d5'%numSize]
+            if data['last%d4'%numSize] !=-1 and data['last%d4'%numSize] < smallestScope:
+                smallestScope = data['last%d4'%numSize]
         return smallestScope
 
-    def saveLuckyNumWith5055(self,filePath,termID):
+    def saveLuckyNumWith4044(self,filePath,termID):
         pdata = []
         tdata = []
         saveData = []
@@ -226,15 +226,15 @@ class calModule():
         for data in self.getLuckyNumByCondition(condition):
             tdata.append(data)
         for i in range(len(tdata)):
-            if pdata[i]['numSize'] >=5 and pdata[i]['rightNum'] == 0:
-                if tdata[i]['numSize']==5:
+            if pdata[i]['numSize'] >=4 and pdata[i]['rightNum'] == 0:
+                if tdata[i]['numSize']==4:
                     str1 = "10/" + "~".join(list(map(str,set(tdata[i]['num'])))) + "/N/1~2~3~4~5/N\r\n"
                     saveData.append(str1)
-            if tdata[i]['numSize'] == 5:
+            if tdata[i]['numSize'] == 4:
                 str1 = "10/" + "~".join(list(map(str,set(tdata[i]['num'])))) + "/N/0~1~2~3~4/N\r\n"
                 saveData.append(str1)
         saveData = list(set(saveData))
-        with open(filePath+termID+"5055.txt",'w') as f:
+        with open(filePath+termID+"4044.txt",'w') as f:
             for d in saveData:
                 f.write(d)
 
@@ -260,19 +260,8 @@ class calModule():
         else:
             return True
 
-
 if __name__ == '__main__':
     test = calModule()
-    # test.initDataWithZone()
-    # test.createForecastDataWithZone()
-    # test.termForcast = test.getLastOneTermID()
-    # condition = {'termID': test.termForcast}
-    # for data in test.getIntervalData(condition):
-    #     moduleID = data['moduleID']
-    #     groupID = data['groupID']
-    #     numSize = data['numSize']
-    #     #从概算周期表中找出moduleID和groupID相同的项
-    #     if test.isLuckyCanBeUsedBySmallScope(test.termForcast,moduleID,groupID,numSize):
-    #         print("\033[3;33m%s期%d页%d组数可以加入文档，继续使用！\033[3;32m"%(test.termForcast,moduleID,groupID))
-    test.saveLuckyNumWith5055("/home/wxy/LuckyNumber/","2019143")
-    # test.saveLuckyNumToFile("/home/wxy/LuckyNumber/2019143-10.txt","2019143",5)
+    test.initDataWithZone()
+    test.createForecastDataWithZone()
+    test.saveLuckyNumWith4044("/home/wxy/DltPro/","19143")

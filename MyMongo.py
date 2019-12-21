@@ -8,22 +8,22 @@ import threading
 #-----------------获取数据个位-------------------------------
 #设置每年有多少期的数据
 termEveyYear={
-    '2013':154,
-    '2014':152,
-    '2015':154,
-    '2016':153,
-    '2017':154,
-    '2018':153,
+    '13':154,
+    '14':152,
+    '15':154,
+    '16':153,
+    '17':154,
+    '18':153,
 }
 
 #计算a期与b期之间的期差
 #a期晚于b期
 def countTermSub(aTermID,bTermID):
     #首先对期数数据进行分割
-    aYear = aTermID[:4]
-    aTerm = aTermID[4:]
-    bYear = bTermID[:4]
-    bTerm = bTermID[4:]
+    aYear = aTermID[:2]
+    aTerm = aTermID[2:]
+    bYear = bTermID[:2]
+    bTerm = bTermID[2:]
     iv = 0
     for i in range(int(aYear)-int(bYear)):
         iv += termEveyYear[str(int(bYear)+i)]
@@ -42,7 +42,7 @@ class myDb:
     def __init__(self):
         self.client = pymongo.MongoClient(host='localhost',port=27017)
         #create or connect to jxluckynum database
-        self.db = self.client['jxluckynum']
+        self.db = self.client['jxdltnum']
         #connect to TermTable
         self.tterm = self.db['TermTable']
         #if there is no data in TermTable,get data from internet and insert them
@@ -141,7 +141,7 @@ class myDb:
                     print("数据更新完成，用时：", end - start)
 
     #从网站上获取所有的开奖数据
-    def __getAllTerm(self,url="http://www.17500.cn/getData/ssq.TXT"):
+    def __getAllTerm(self,url="http://www.17500.cn/getData/dlt2.TXT"):
         page = urllib.request.urlopen(url)
         html = page.read()
         data = html.decode('utf-8')
@@ -156,8 +156,8 @@ class myDb:
                 di = d.split(" ")
                 termdata = term()
                 termdata.termID = di[0]
-                termdata.red = list(map(int,di[2:8]))
-                termdata.blue = int(di[8])
+                termdata.red = list(map(int,di[2:7]))
+                termdata.blue = list(map(int,di[7:9]))
                 terms.append(termdata.__dict__)
         finally:
             return terms
@@ -178,6 +178,7 @@ class myDb:
     # 调用函数计算每页所有的数据，并返回
     def __calFuncByGroup(self,funcStart,funcEnd,red,blue):
         result = []
+        print(red,blue)
         for x in range(funcStart,funcEnd+1):
             result.append(eval("jxM%d"%x)(red,blue))
         return result
@@ -192,7 +193,7 @@ class myDb:
     # 私有方法，类外不可调用
     def __groupCal(self, page, funcStart, funcEnd, termdata, red,blue):
         pageData = []
-        groupNum = int(funcEnd / 6)
+        groupNum = int(funcEnd / 5)
         onePageNum = self.__calFuncByGroup(funcStart, funcEnd, red, blue)
         for g in range(groupNum):
             # 概率性数据集表
@@ -201,7 +202,7 @@ class myDb:
             calRes.termID = termdata['termID']
             calRes.groupID = g + 1
             calRes.dataID = calRes.termID + '{:0>3d}{:0>3d}'.format(calRes.moduleID, calRes.groupID)
-            calRes.num = onePageNum[g * 6:(g + 1) * 6]
+            calRes.num = onePageNum[g * 5:(g + 1) * 5]
             calRes.numSize = len(list(set(calRes.num)))
             if termdata['red'] == []:
                 calRes.rightNum = -1
@@ -216,8 +217,8 @@ class myDb:
             pageData.append(calRes.__dict__)
             # 创建数据概率周期表基本数据
             # 待基本数据创建完成后周期表再进行自我计算出周期差
-            if calRes.numSize >= 5 :
-                if (calRes.rightNum >= 5 or calRes.rightNum == 0) or (termdata['red']==[]):
+            if calRes.numSize >= 4 :
+                if (calRes.rightNum >= 4 or calRes.rightNum == 0) or (termdata['red']==[]):
                     dataIn = dataInterval()
                     dataIn.dataID = calRes.dataID
                     dataIn.termID = calRes.termID
@@ -234,17 +235,12 @@ class myDb:
         if len(datas) < 1:
             print("请先生成开奖信息表！.......")
             return
-        if page > 1 and page < 34:
-            # for data in datas:
-            #     for index in range(len(data['red'])):
-            #         data['red'][index] += page
-            #         if data['red'][index] > 33:
-            #             data['red'][index] -= 33
+        if page > 1 and page < 36:
             for index in range(len(datas)):
                 for i in range(len(datas[index]['red'])):
                     datas[index]['red'][i] += page-1
-                    if datas[index]['red'][i] >33:
-                        datas[index]['red'][i] -= 33
+                    if datas[index]['red'][i] >35:
+                        datas[index]['red'][i] -= 35
         for index in range(len(datas)):
             if index >= 1:
                 pageData = self.__groupCal(page, self.__funcStart, self.__funcEnd, datas[index],
@@ -262,21 +258,20 @@ class myDb:
         izone = int((page-1)/redNum)
         ipage = page%redNum
         if ipage ==0:
-            ipage = 33
+            ipage = 35
         #每一组里的第一页均为原始值
         for index in range(len(datas)):
             if index >= zone:
                 # 定义一组红球和蓝球，每次回滚或自增时都需要改变
                 red = []
-                blue = 0
+                blue = []
                 for r in datas[index-izone-1]['red']:
                     r += ipage-1
-                    if r > 33:
-                        r -= 33
+                    if r > 35:
+                        r -= 35
                     red.append(r)
                 blue = datas[index-izone-1]['blue']
                 pageData = self.__groupCal(page,self.__funcStart,self.__funcEnd,datas[index],red,blue)
-                # print("\033[1;33m这是第%d页，termID[%s]=\033[3;31m" % (page, datas[index]["termID"]), red,blue)
                 if len(pageData) > 0:
                     self.tlucky.insert_many(pageData)
 
@@ -286,7 +281,7 @@ class myDb:
         return luckynums
 
     #--------------概率周期表相关------------------
-    #表的创建在生成数据表的时候同步进行，本表只存储6中6,6中5,6中0,5中5及5中0的信息
+    #表的创建在生成数据表的时候同步进行，本表只存储5中5,5中4,5中0,4中4及4中0的信息
 
     def getAllDataInterval(self):
         return self.tinterval.find().sort('dataID')
@@ -308,9 +303,9 @@ class myDb:
             def run(mod,index):
                 lock.acquire()
                 try:
-                    if mod[index]['last66'] != -1 or mod[index]['last65'] != -1 \
-                            or mod[index]['last60'] != -1 or mod[index]['last55'] != -1 \
-                            or mod[index]['last50'] != -1:
+                    if mod[index]['last55'] != -1 or mod[index]['last54'] != -1 \
+                            or mod[index]['last50'] != -1 or mod[index]['last44'] != -1 \
+                            or mod[index]['last40'] != -1:
                         return
                     else:
                         if index == 0:
