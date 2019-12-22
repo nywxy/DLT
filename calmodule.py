@@ -86,7 +86,7 @@ class calModule():
         end = time.time()
         print("生成概率周期数据完毕，用时：",end-start)
 
-    def initDataWithZone(self,page=35,scope=100,zone=2):
+    def initDataWithZone(self,page=35,scope=30,zone=2):
         self.__page = page
         self.__scope = scope
         self.__zone = zone
@@ -104,12 +104,16 @@ class calModule():
         # 通过多线程生成
         self.createAllLuckyDataWithZone(self.__scope,self.__page,zone)
 
+
+
         print("开始生成概率周期数据")
         start = time.time()
         for data in self.__modb.getAllDataInterval():
             self.__modb.updateInterval(data)
         end = time.time()
         print("生成概率周期数据完毕，用时：",end-start)
+
+
 
     #此方法为已有最新数据后的生成预测，只有再初始化数据或更新数据后可用
     def createForecastData(self):

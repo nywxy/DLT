@@ -58,7 +58,7 @@ class myDb:
         self.__updateInfo = []
         #计算函数起始信息，每页计算出来多少组数，主要根据这两个值确定，结束应为6的倍数
         self.__funcStart = 1
-        self.__funcEnd = 216
+        self.__funcEnd = 435
 
         #程序初始化时需要先获取最新数据信息，如果获取不到就用以往数据
         self.getLastestTermData()
@@ -178,7 +178,6 @@ class myDb:
     # 调用函数计算每页所有的数据，并返回
     def __calFuncByGroup(self,funcStart,funcEnd,red,blue):
         result = []
-        print(red,blue)
         for x in range(funcStart,funcEnd+1):
             result.append(eval("jxM%d"%x)(red,blue))
         return result
@@ -217,8 +216,8 @@ class myDb:
             pageData.append(calRes.__dict__)
             # 创建数据概率周期表基本数据
             # 待基本数据创建完成后周期表再进行自我计算出周期差
-            if calRes.numSize >= 4 :
-                if (calRes.rightNum >= 4 or calRes.rightNum == 0) or (termdata['red']==[]):
+            if calRes.numSize >= 3 :
+                if (calRes.rightNum >= 3 or calRes.rightNum == 0) or (termdata['red']==[]):
                     dataIn = dataInterval()
                     dataIn.dataID = calRes.dataID
                     dataIn.termID = calRes.termID
@@ -281,12 +280,15 @@ class myDb:
         return luckynums
 
     #--------------概率周期表相关------------------
-    #表的创建在生成数据表的时候同步进行，本表只存储5中5,5中4,5中0,4中4及4中0的信息
+    #表的创建在生成数据表的时候同步进行，本表只存储5中5,5中4,5中3,5中0,4中4,4中3,及4中0,3中3及3中0的信息
 
     def getAllDataInterval(self):
         return self.tinterval.find().sort('dataID')
 
+    #########################################################
+    ########下面这段函数为计算相同数据周期之间的距离####################
     def updateInterval(self,dataIn):
+        '''
         datas = self.tinterval.find({'moduleID':dataIn['moduleID'],
                                              'groupID':dataIn['groupID'],
                                              'numSize':dataIn['numSize'],
@@ -304,8 +306,10 @@ class myDb:
                 lock.acquire()
                 try:
                     if mod[index]['last55'] != -1 or mod[index]['last54'] != -1 \
-                            or mod[index]['last50'] != -1 or mod[index]['last44'] != -1 \
-                            or mod[index]['last40'] != -1:
+                            or mod[index]['last53'] != -1 or mod[index]['last50'] != -1 \
+                            or mod[index]['last44'] != -1 or mod[index]['last43'] != -1 \
+                            or mod[index]['last40'] != -1 or mod[index]['last33'] != -1 \
+                            or mod[index]['last30'] != -1:
                         return
                     else:
                         if index == 0:
@@ -325,6 +329,9 @@ class myDb:
                 T = threading.Thread(target=run,args=(mod,index))
                 T.start()
                 T.join()
+        '''
+        ########注释掉可缩短存储时间，但是数据间隔无法得出##############
+        ########################################################
 
     def getIntervalDataByCondition(self,condition):
         datas = self.tinterval.find(condition)

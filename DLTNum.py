@@ -27,6 +27,10 @@ class dataInterval:
         self.rightNum = -1
         self.last55 = -1
         self.last54 = -1
+        self.last53 = -1
         self.last44 = -1
+        self.last43 = -1
+        self.last33 = -1
         self.last50 = -1
         self.last40 = -1
+        self.last30 = -1
